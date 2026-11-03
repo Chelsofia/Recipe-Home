@@ -22,7 +22,7 @@ export default function Pagination({
       <button
         onClick={previousPage}
         disabled={currentPage === 1}
-        className="bg-[#7785AC] text-white px-4 py-2 rounded disabled:opacity-50"
+        className=" text-white px-4 py-2 rounded disabled:opacity-50"
       >
         Previous
       </button>
@@ -34,7 +34,7 @@ export default function Pagination({
       <button
         onClick={nextPage}
         disabled={currentPage === totalPages}
-        className="bg-[#7785AC] text-white px-4 py-2 rounded disabled:opacity-50"
+        className=" text-white px-4 py-2 rounded disabled:opacity-50"
       >
         Next
       </button>

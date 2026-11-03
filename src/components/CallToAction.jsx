@@ -6,11 +6,12 @@ function CallToAction() {
 
   {/* Left side - Text */}
   <div className="flex-1 text-left">
-    <h1 className="text-2xl font-bold text-white mb-4">
-      Cooking Made Fun!
+    <h1 className="text-2xl font-bold mb-4">
+     Find it. Make it. Love it. Your Culinary Adventure Awaits!
+
     </h1>
 
-    <p className="text-white mb-6">
+    <p className=" mb-6">
       Discover a world of delicious recipes and culinary inspiration.
       Whether you're a seasoned chef or just starting your cooking journey,
       our collection of recipes will help you create mouthwatering dishes
@@ -19,7 +20,7 @@ function CallToAction() {
       Start your culinary adventure today!
     </p>
 
-    <button className="bg-orange-500 text-white px-5 py-3 rounded-md hover:bg-orange-600">
+    <button className="text-white px-5 py-3 rounded-md hover:bg-orange-600">
       Get Started
     </button>
   </div>

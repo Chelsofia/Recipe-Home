@@ -108,7 +108,7 @@ const handleSubmit = (e) => {
   return (
     <>
     <Header />
-    <main className="bg-[#9AC6C5] min-h-screen p-6">
+    <main className=" min-h-screen p-6">
      
 <CallToAction />
       <section>
@@ -121,7 +121,7 @@ const handleSubmit = (e) => {
       </section>
 
       <section className="mt-10 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-white">
+        <h2 className="text-2xl font-bold mb-6 ">
           Recipes
         </h2>
 

@@ -4,8 +4,22 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-background: #FAF7F0;
+  --color-primary: #354B35;
+  --color-secondary: #A8B89A;
+  --color-accent: #C8754D;
+  --color-text: #292B26;
+  --color-white: #FFFFFF;
+}
 body {
   font-family: "DM Sans", "sans-serif";
+  background-color: var(--color-background);
+  color: var(--color-text);
+
+}
+button {
+  background-color: var(--color-primary);
 }
 h1, h2 {
      font-family: "Playfair Display", "serif";
