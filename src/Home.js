@@ -1,16 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback  } from "react";
 import { Link } from "react-router";
 import Loader from "./components/Loader";
+import Header from "./components/Header";
+import CallToAction from "./components/CallToAction";
+import Pagination from "./components/Pagination";
+import SearchBar from "./components/SearchBar";
+
 
 function Home() {
   const [recipes, setRecipes] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
+  const [debounce, setDebounce] = useState ("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const recipesPerPage = 12;
+  const recipesPerPage = 4;
+
+const dailyLetter = useMemo(() => {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+
+  const today = new Date();
+
+  const dayOfYear = Math.floor(
+    (today - new Date(today.getFullYear(), 0, 0)) / 86400000
+  );
+
+  return letters[dayOfYear % letters.length];
+}, []);
 
  useEffect(() => {
   const getInitialRecipes = async () => {
@@ -18,7 +35,7 @@ function Home() {
       setLoading(true);
       setError("");
 
-      const response = await fetch("https://www.themealdb.com/api/json/v1/1/search.php?f=r");
+      const response = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?f=${dailyLetter}`);
 
       if (!response.ok) {
         throw new Error("failed to fetch recipes");
@@ -32,94 +49,75 @@ function Home() {
     }
   };
   getInitialRecipes();
- }, []);
+ }, [dailyLetter]);
 
-  const getRecipes = async () => {
-    if (!search.trim()) {
-      return;
+const fetchRecipes = useCallback(async (searchTerm) => {
+  try {
+    setLoading(true);
+    setError("");
+
+    const url = searchTerm.trim()
+      ? `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(searchTerm)}`
+      : `https://www.themealdb.com/api/json/v1/1/search.php?f=${dailyLetter}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch recipes");
     }
 
-    try {
-      setLoading(true);
-      setError("");
+    const data = await response.json();
+    setRecipes(data.meals || []);
 
-      const response = await fetch(
-        `https://www.themealdb.com/api/json/v1/1/search.php?s=${search}`
-      );
+  } catch (error) {
+    setError("Something went wrong while loading recipes");
+  } finally {
+    setLoading(false);
+  }
+}, [dailyLetter]);
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch recipes");
-      }
+ useEffect(() => {
+    const timer = setTimeout(() => {
+        setDebounce(search);
+        setCurrentPage(1);
+    }, 500);
 
-      const result = await response.json();
+    return () => clearTimeout(timer);
+}, [search]);
 
-      setRecipes(result.meals || []);
-      setCurrentPage(1);
-    } catch (error) {
-      setError("Something went wrong while searching.");
-      setRecipes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+useEffect(() => {
+    fetchRecipes(debounce);
+}, [debounce, fetchRecipes]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    getRecipes();
-  };
-
-  const lastRecipeIndex = currentPage * recipesPerPage;
+const handleSubmit = (e) => {
+  e.preventDefault();
+  setDebounce(search);
+  setCurrentPage(1);
+};
+   const lastRecipeIndex = currentPage * recipesPerPage;
   const firstRecipeIndex = lastRecipeIndex - recipesPerPage;
-
-  const currentRecipes = recipes.slice(
+ const currentRecipes = recipes.slice(
     firstRecipeIndex,
     lastRecipeIndex
   );
 
-  const totalPages = Math.ceil(
+ const totalPages = Math.ceil(
     recipes.length / recipesPerPage
   );
 
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prevPage) => prevPage + 1);
-    }
-  };
-
-  const previousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1);
-    }
-  };
-
   return (
+    <>
+    <Header />
     <main className="bg-[#9AC6C5] min-h-screen p-6">
-      <h1 className="text-3xl text-center mt-8 mb-8 font-bold text-white">
-        Chelsofia's Recipe Site
-      </h1>
-
+     
+<CallToAction />
       <section>
-        <form
-          onSubmit={handleSubmit}
-          className="max-w-md mx-auto"
-        >
-          <div className="flex items-center w-full h-12 rounded-lg bg-white overflow-hidden border border-gray-200">
-            <input
-              className="h-full w-full outline-none text-sm text-gray-700 px-4"
-              type="text"
-              placeholder="Search recipes..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <SearchBar 
+        search={search}
+        setSearch={setSearch}
+        handleSubmit={handleSubmit}
 
-            <button
-              type="submit"
-              className="bg-[#7785AC] text-white h-full px-5 hover:bg-orange-600"
-            >
-              Search
-            </button>
-          </div>
-        </form>
+        />
       </section>
 
       <section className="mt-10 max-w-7xl mx-auto">
@@ -175,33 +173,16 @@ function Home() {
               ))}
             </div>
 
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-10">
-                <button
-                  onClick={previousPage}
-                  disabled={currentPage === 1}
-                  className="bg-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-
-                <span className="text-white font-medium">
-                  Page {currentPage} of {totalPages}
-                </span>
-
-                <button
-                  onClick={nextPage}
-                  disabled={currentPage === totalPages}
-                  className="bg-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+          <Pagination
+          currentPage={currentPage}
+  setCurrentPage={setCurrentPage}
+  totalPages={totalPages}
+          />
           </>
         )}
       </section>
     </main>
+    </>
   );
 }
 
