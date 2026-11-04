@@ -8,7 +8,7 @@ export default function SearchBar({ search, setSearch, handleSubmit }) {
             >
               <div className="flex items-center w-full h-12 rounded-lg bg-white overflow-hidden border border-gray-200">
                 <input
-                  className="h-full w-full outline-none text-sm text-gray-700 px-4"
+                  className="h-full w-full outline-none text-gray-700 px-4 text-[16px]"
                   type="text"
                   placeholder="Search recipes..."
                   value={search}
