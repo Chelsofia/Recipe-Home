@@ -20,7 +20,7 @@ function CallToAction() {
       Start your culinary adventure today!
     </p>
 
-    <button className="text-white px-5 py-3 rounded-md hover:bg-orange-600">
+    <button className="text-white px-5 py-3 rounded-md">
       Get Started
     </button>
   </div>

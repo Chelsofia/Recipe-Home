@@ -21,6 +21,10 @@ body {
 button {
   background-color: var(--color-primary);
 }
+button:hover {
+  background-color: #263A28;
+  transform: translateY(-2px);
+}
 h1, h2 {
      font-family: "Playfair Display", "serif";
 }

@@ -16,7 +16,7 @@ export default function SearchBar({ search, setSearch, handleSubmit }) {
                 />
                 <button
                   type="submit"
-                  className=" text-white h-full px-5 hover:bg-orange-600"
+                  className=" text-white h-full px-5"
                 >
                   Search
                 </button>
