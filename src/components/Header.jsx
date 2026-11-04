@@ -5,7 +5,6 @@ export default function Header () {
     return (
         <header>
         <img src={Logo} alt="logo" className="w-40 mx-auto mt-10"/>
-           
             <nav>
                 <ul className="flex justify-center gap-4 mt-4">
                     <li>
