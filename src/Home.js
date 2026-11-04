@@ -36,16 +36,12 @@ const dailyLetter = useMemo(() => {
       setError("");
 
       const response = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?f=${dailyLetter}`);
-  console.log("Status:", response.status);
 
       if (!response.ok) {
         throw new Error("failed to fetch recipes");
       }
       const result = await response.json();
-    
-console.log("Full API response:", result);
-console.log("Daily letter:", dailyLetter);
-console.log("Meals:", result.meals);
+
       setRecipes(result.meals || []);
     } catch (error) {
       setError("Something went wrong while loading recipes");
