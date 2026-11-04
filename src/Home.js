@@ -14,7 +14,7 @@ function Home() {
   const [error, setError] = useState("");
   const [debounce, setDebounce] = useState ("");
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [searchTrigger, setSearchTrigger] = useState(0);
   const recipesPerPage = 4;
 
 const dailyLetter = useMemo(() => {
@@ -51,48 +51,72 @@ const dailyLetter = useMemo(() => {
   getInitialRecipes();
  }, [dailyLetter]);
 
-const fetchRecipes = useCallback(async (searchTerm) => {
+const fetchRecipes = useCallback(async (searchTerm, signal) => {
   try {
-    setLoading(true);
     setError("");
 
     const url = searchTerm.trim()
       ? `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(searchTerm)}`
       : `https://www.themealdb.com/api/json/v1/1/search.php?f=${dailyLetter}`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, { signal });
 
     if (!response.ok) {
       throw new Error("Failed to fetch recipes");
     }
 
     const data = await response.json();
-    setRecipes(data.meals || []);
 
+    if (!signal.aborted) {
+      setRecipes(data.meals || []);
+    }
   } catch (error) {
-    setError("Something went wrong while loading recipes");
-  } finally {
-    setLoading(false);
+    if (error.name === "AbortError") return;
+
+    if (!signal.aborted) {
+      setError("Something went wrong while loading recipes");
+    }
   }
 }, [dailyLetter]);
 
- useEffect(() => {
-    const timer = setTimeout(() => {
-        setDebounce(search);
-        setCurrentPage(1);
-    }, 500);
+useEffect(() => {
+  setLoading(true);
 
-    return () => clearTimeout(timer);
+  const timer = setTimeout(() => {
+    setDebounce(search);
+    setCurrentPage(1);
+  }, 500);
+
+  return () => clearTimeout(timer);
 }, [search]);
 
 useEffect(() => {
-    fetchRecipes(debounce);
-}, [debounce, fetchRecipes]);
+  const controller = new AbortController();
+
+  const getRecipes = async () => {
+    setLoading(true);
+
+    try {
+      await fetchRecipes(debounce, controller.signal);
+    } finally {
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
+    }
+  };
+
+  getRecipes();
+
+  return () => {
+    controller.abort();
+  };
+}, [debounce, searchTrigger, fetchRecipes]);
 
 const handleSubmit = (e) => {
   e.preventDefault();
   setDebounce(search);
   setCurrentPage(1);
+  setSearchTrigger((prev) => prev + 1);
 };
    const lastRecipeIndex = currentPage * recipesPerPage;
   const firstRecipeIndex = lastRecipeIndex - recipesPerPage;
@@ -106,83 +130,77 @@ const handleSubmit = (e) => {
   );
 
   return (
-    <>
-    <Header />
-    <main className=" min-h-screen p-6">
-     
-<CallToAction />
-      <section>
-        <SearchBar 
+<>
+  <Header />
+
+  <main className="min-h-screen p-6">
+    <CallToAction />
+
+    <section>
+      <SearchBar
         search={search}
         setSearch={setSearch}
         handleSubmit={handleSubmit}
+      />
+    </section>
 
-        />
-      </section>
+    <section className="mt-10 max-w-7xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-[#354B35]">
+        Recipes
+      </h2>
 
-      <section className="mt-10 max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6 ">
-          Recipes
-        </h2>
+      {loading && <Loader />}
 
-        {loading && (
-          <p className="align-center">
-            <Loader />
-          </p>
-        )}
+      {error && (
+        <p className="text-[#C8754D] text-center">
+          {error}
+        </p>
+      )}
 
-        {error && (
-          <p className="text-red-200 text-center">
-            {error}
-          </p>
-        )}
+      {!loading && !error && recipes.length === 0 && (
+        <p className="text-[#292B26] text-center">
+          No recipes found.
+        </p>
+      )}
 
-        {!loading &&
-          !error &&
-          recipes.length === 0 && (
-            <p className="text-white text-center">
-              No recipes found.
-            </p>
-          )}
+      {!loading && !error && recipes.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {currentRecipes.map((recipe) => (
+              <Link
+                to={`/recipe/${recipe.idMeal}`}
+                key={recipe.idMeal}
+                className="bg-white rounded-lg overflow-hidden shadow-md"
+              >
+                <img
+                  src={recipe.strMealThumb}
+                  alt={recipe.strMeal}
+                  className="w-full h-48 object-cover"
+                />
 
-        {!loading && recipes.length > 0 && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {currentRecipes.map((recipe) => (
-                <Link
-                  to={`/recipe/${recipe.idMeal}`}
-                  key={recipe.idMeal}
-                  className="bg-white rounded-lg overflow-hidden shadow-md"
-                >
-                  <img
-                    src={recipe.strMealThumb}
-                    alt={recipe.strMeal}
-                    className="w-full h-48 object-cover"
-                  />
+                <div className="p-4">
+                  <h3 className="font-bold text-lg text-[#354B35]">
+                    {recipe.strMeal}
+                  </h3>
 
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg">
-                      {recipe.strMeal}
-                    </h3>
-
-                    <p className="text-gray-500 text-sm mt-2">
-                      {recipe.strCategory}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  <p className="text-[#292B26] text-sm mt-2">
+                    {recipe.strCategory}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
 
           <Pagination
-          currentPage={currentPage}
-  setCurrentPage={setCurrentPage}
-  totalPages={totalPages}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalPages={totalPages}
           />
-          </>
-        )}
-      </section>
-    </main>
-    </>
+        </>
+      )}
+    </section>
+  </main>
+</>
   );
 }
 

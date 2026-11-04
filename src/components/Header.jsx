@@ -19,7 +19,7 @@ export default function Header () {
                     </li>
                     <li>
                         <a href="/contact" className=" hover:text-[#263A28] hover:font-bold">
-                            Contact
+                            Community
                         </a>
                     </li>
                 </ul>
